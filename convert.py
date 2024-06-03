@@ -32,11 +32,14 @@ class Converter:
     OBJECTS = 'Objects'
     FILENAME = 'FileName'
     FILES = 'Files'
+    TEXT = 'Text'
+    TEXTS = 'Texts'
 
     def __init__(self, root_dir):
         self.project = self.NONE
         self.root_dir = root_dir
         self.assets = []
+        self.localization = {}
 
     @staticmethod
     def _read_json(file_path):
@@ -72,8 +75,21 @@ class Converter:
             if obj.get(self.TYPE) == self.ASSET and obj.get(self.CATEGORY) == self.IMAGE:
                 self._parse_image(obj)
 
+    def _parse_localization(self, localization_filename):
+        localization_path = os.path.join(self.root_dir, localization_filename)
+        data = self._read_json(localization_path)
+        for localization_key, localization in data.items():
+            localization_val = {
+                # Lower all keys
+                key: {k.lower(): v for k, v in val.items()}
+                # Filter only entries with self.TEXT in val
+                for key, val in localization.items() if self.TEXT in val
+            }
+            self.localization[localization_key] = localization_val
+
     def _parse_package_files(self, package_files):
         self._parse_objects_file(package_files[self.OBJECTS][self.FILENAME])
+        self._parse_localization(package_files[self.TEXTS][self.FILENAME])
 
     def _parse_packages(self, packages):
         for package in packages:
@@ -89,7 +105,11 @@ class Converter:
 
     def save(self):
         with open(self.OUTPUT_FILE, 'w', encoding='utf-8') as f:
-            json.dump({'project': self.project, 'assets': self.assets}, f, ensure_ascii=False, indent=2)
+            json.dump({
+                'project': self.project,
+                'localization': self.localization,
+                'assets': self.assets,
+            }, f, ensure_ascii=False, indent=2)
 
 
 def main():
