@@ -35,11 +35,15 @@ class Converter:
     FILES = 'Files'
     TEXT = 'Text'
     TEXTS = 'Texts'
+    ENTITY = 'Entity'
+    DISPLAY_NAME = 'DisplayName'
+    PREVIEW_IMAGE = 'PreviewImage'
 
     def __init__(self, root_dir):
         self.project = self.NONE
         self.root_dir = root_dir
         self.assets = []
+        self.entities = []
         self.localization = {}
 
     @staticmethod
@@ -68,6 +72,14 @@ class Converter:
             'base64': base64_string
         }]
 
+    def _parse_entity(self, obj):
+        props = obj[self.PROPERTIES]
+        self.entities += [{
+            'id': props[self.ID],
+            'name': props[self.DISPLAY_NAME],
+            'image': props[self.PREVIEW_IMAGE][self.ASSET]
+        }]
+
     def _parse_objects_file(self, objects_filename):
         objects_path = os.path.join(self.root_dir, objects_filename)
         data = self._read_json(objects_path)
@@ -75,6 +87,8 @@ class Converter:
         for obj in objects:
             if obj.get(self.TYPE) == self.ASSET and obj.get(self.CATEGORY) == self.IMAGE:
                 self._parse_image(obj)
+            if obj.get(self.TYPE) == self.ENTITY:
+                self._parse_entity(obj)
 
     def _parse_localization(self, localization_filename):
         localization_path = os.path.join(self.root_dir, localization_filename)
@@ -109,6 +123,7 @@ class Converter:
             json.dump({
                 'project': self.project,
                 'localization': self.localization,
+                'entities': self.entities,
                 'assets': self.assets,
             }, f, ensure_ascii=False, indent=2)
 
