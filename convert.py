@@ -38,6 +38,8 @@ class Converter:
     ENTITY = 'Entity'
     DISPLAY_NAME = 'DisplayName'
     PREVIEW_IMAGE = 'PreviewImage'
+    DIALOGUE = 'Dialogue'
+    SIZE = 'Size'
 
     def __init__(self, root_dir):
         self.project = self.NONE
@@ -59,17 +61,30 @@ class Converter:
             print(f'An unexpected error occurred: {e}')
         sys.exit(1)
 
+    @staticmethod
+    def _read_as_base64(file_path):
+        try:
+            with open(file_path, 'rb') as image_file:
+                return base64.b64encode(image_file.read()).decode('utf-8')
+        except FileNotFoundError:
+            print(f'The file was not found: {file_path}')
+        except Exception as e:
+            print(f'An unexpected error occurred: {e}')
+        sys.exit(1)
+
     def _parse_image(self, obj):
         image_path = os.path.join(self.root_dir, obj[self.ASSET_REF])
         image_extension = get_file_extension(image_path)
         image_props = obj[self.PROPERTIES]
         image_id = image_props[self.ID]
-        with open(image_path, 'rb') as image_file:
-            base64_string = base64.b64encode(image_file.read()).decode('utf-8')
+        image_width = image_props[self.SIZE]['w']
+        image_height = image_props[self.SIZE]['h']
+        base64_string = self._read_as_base64(image_path)
         self.assets += [{
             'id': image_id,
-            'extension': image_extension,
-            'base64': base64_string
+            'width': image_width,
+            'height': image_height,
+            'uri': f'data:image/{image_extension};base64,{base64_string}',
         }]
 
     def _parse_entity(self, obj):
@@ -77,8 +92,11 @@ class Converter:
         self.entities += [{
             'id': props[self.ID],
             'name': props[self.DISPLAY_NAME],
-            'image': props[self.PREVIEW_IMAGE][self.ASSET]
+            'image': props[self.PREVIEW_IMAGE][self.ASSET],
         }]
+
+    def _parse_dialogue(self, obj):
+        print(obj)
 
     def _parse_objects_file(self, objects_filename):
         objects_path = os.path.join(self.root_dir, objects_filename)
@@ -89,6 +107,8 @@ class Converter:
                 self._parse_image(obj)
             if obj.get(self.TYPE) == self.ENTITY:
                 self._parse_entity(obj)
+            if obj.get(self.TYPE) == self.DIALOGUE:
+                self._parse_dialogue(obj)
 
     def _parse_localization(self, localization_filename):
         localization_path = os.path.join(self.root_dir, localization_filename)
