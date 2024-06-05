@@ -40,12 +40,20 @@ class Converter:
     PREVIEW_IMAGE = 'PreviewImage'
     DIALOGUE = 'Dialogue'
     SIZE = 'Size'
+    DIALOGUE_FRAGMENT = 'DialogueFragment'
+    PARENT = 'Parent'
+    SPEAKER = 'Speaker'
+    OUTPUT_PINS = 'OutputPins'
+    CONNECTIONS = 'Connections'
+    TARGET = 'Target'
 
     def __init__(self, root_dir):
         self.project = self.NONE
         self.root_dir = root_dir
         self.images = []
         self.entities = []
+        self.dialogues = []
+        self.fragments = {}
         self.localization = {}
 
     @staticmethod
@@ -89,14 +97,35 @@ class Converter:
 
     def _parse_entity(self, obj):
         props = obj[self.PROPERTIES]
-        self.entities += [{
+        self.entities.append({
             'id': props[self.ID],
             'name': props[self.DISPLAY_NAME],
-            'image': props[self.PREVIEW_IMAGE][self.ASSET],
-        }]
+            'preview': props[self.PREVIEW_IMAGE][self.ASSET],
+        })
 
     def _parse_dialogue(self, obj):
-        print(obj)
+        props = obj[self.PROPERTIES]
+        self.dialogues.append({
+            'id': props[self.ID],
+            # Top-level dialogues don't have a parent
+            'parent': '',
+        })
+
+    def _parse_dialogue_fragment(self, obj):
+        props = obj[self.PROPERTIES]
+        outputs = []
+        for output_pin in props[self.OUTPUT_PINS]:
+            for connection in output_pin[self.CONNECTIONS]:
+                outputs.append(connection[self.TARGET])
+        fragment = {
+            'dialogue': props[self.PARENT],
+            'speaker': props[self.SPEAKER],
+            'text': props[self.TEXT],
+            'outputs': outputs,
+            # It will be filled in _update_dialogue_fragments
+            'inputs': [],
+        }
+        self.fragments[props[self.ID]] = fragment
 
     def _parse_objects_file(self, objects_filename):
         objects_path = os.path.join(self.root_dir, objects_filename)
@@ -109,6 +138,8 @@ class Converter:
                 self._parse_entity(obj)
             if obj.get(self.TYPE) == self.DIALOGUE:
                 self._parse_dialogue(obj)
+            if obj.get(self.TYPE) == self.DIALOGUE_FRAGMENT:
+                self._parse_dialogue_fragment(obj)
 
     def _parse_localization(self, localization_filename):
         localization_path = os.path.join(self.root_dir, localization_filename)
@@ -138,12 +169,20 @@ class Converter:
         packages = data[self.PACKAGES]
         self._parse_packages(packages)
 
+    def _update_dialogue_fragments(self):
+        for fragment_id, fragment in self.fragments.items():
+            for output in fragment['outputs']:
+                if output in self.fragments:
+                    self.fragments[output]['inputs'].append(fragment_id)
+
     def save(self):
+        self._update_dialogue_fragments()
         with open(self.OUTPUT_FILE, 'w', encoding='utf-8') as f:
             json.dump({
                 'project': self.project,
                 'localization': self.localization,
                 'entities': self.entities,
+                'fragments': self.fragments,
                 'images': self.images,
             }, f, ensure_ascii=False, indent=2)
 
