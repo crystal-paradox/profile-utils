@@ -170,14 +170,13 @@ class Converter:
         self._parse_packages(packages)
 
     def _update_dialogue_fragments(self):
-        # Build inputs based on outputs
-        for fragment_id, fragment in self.fragments.items():
-            for output in fragment['outputs']:
-                if output in self.fragments:
-                    self.fragments[output]['inputs'].append(fragment_id)
         # Clear incorrect outputs that don't exist as keys in the dict
         for fragment_id, fragment in self.fragments.items():
             fragment['outputs'] = [x for x in fragment['outputs'] if x in self.fragments]
+        # Build inputs based on outputs
+        for fragment_id, fragment in self.fragments.items():
+            for output in fragment['outputs']:
+                self.fragments[output]['inputs'].append(fragment_id)
 
     def save(self):
         self._update_dialogue_fragments()
