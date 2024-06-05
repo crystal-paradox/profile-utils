@@ -44,7 +44,7 @@ class Converter:
     def __init__(self, root_dir):
         self.project = self.NONE
         self.root_dir = root_dir
-        self.assets = []
+        self.images = []
         self.entities = []
         self.localization = {}
 
@@ -80,7 +80,7 @@ class Converter:
         image_width = image_props[self.SIZE]['w']
         image_height = image_props[self.SIZE]['h']
         base64_string = self._read_as_base64(image_path)
-        self.assets += [{
+        self.images += [{
             'id': image_id,
             'width': image_width,
             'height': image_height,
@@ -144,7 +144,7 @@ class Converter:
                 'project': self.project,
                 'localization': self.localization,
                 'entities': self.entities,
-                'assets': self.assets,
+                'images': self.images,
             }, f, ensure_ascii=False, indent=2)
 
 
