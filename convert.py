@@ -50,8 +50,8 @@ class Converter:
     def __init__(self, root_dir):
         self.project = self.NONE
         self.root_dir = root_dir
-        self.images = []
-        self.entities = []
+        self.images = {}
+        self.entities = {}
         self.dialogues = []
         self.fragments = {}
         self.localization = {}
@@ -88,20 +88,19 @@ class Converter:
         image_width = image_props[self.SIZE]['w']
         image_height = image_props[self.SIZE]['h']
         base64_string = self._read_as_base64(image_path)
-        self.images += [{
-            'id': image_id,
+        self.images[image_id] = {
             'width': image_width,
             'height': image_height,
             'uri': f'data:image/{image_extension};base64,{base64_string}',
-        }]
+        }
 
     def _parse_entity(self, obj):
         props = obj[self.PROPERTIES]
-        self.entities.append({
+        self.entities[props[self.ID]] = {
             'id': props[self.ID],
             'name': props[self.DISPLAY_NAME],
             'preview': props[self.PREVIEW_IMAGE][self.ASSET],
-        })
+        }
 
     def _parse_dialogue(self, obj):
         props = obj[self.PROPERTIES]
