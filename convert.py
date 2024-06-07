@@ -97,7 +97,6 @@ class Converter:
     def _parse_entity(self, obj):
         props = obj[self.PROPERTIES]
         self.entities[props[self.ID]] = {
-            'id': props[self.ID],
             'name': props[self.DISPLAY_NAME],
             'preview': props[self.PREVIEW_IMAGE][self.ASSET],
         }
