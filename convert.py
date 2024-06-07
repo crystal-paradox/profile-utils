@@ -107,8 +107,6 @@ class Converter:
         props = obj[self.PROPERTIES]
         self.dialogues.append({
             'id': props[self.ID],
-            # Top-level dialogues don't have a parent
-            'parent': '',
         })
 
     def _parse_dialogue_fragment(self, obj):
@@ -185,6 +183,7 @@ class Converter:
                 'project': self.project,
                 'localization': self.localization,
                 'entities': self.entities,
+                'dialogues': self.dialogues,
                 'fragments': self.fragments,
                 'images': self.images,
             }, f, ensure_ascii=False, indent=2)
