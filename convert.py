@@ -105,6 +105,7 @@ class Converter:
         props = obj[self.PROPERTIES]
         self.dialogues.append({
             'id': props[self.ID],
+            'name': props[self.DISPLAY_NAME],
         })
 
     def _parse_dialogue_fragment(self, obj):
