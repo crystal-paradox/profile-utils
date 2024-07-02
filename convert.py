@@ -112,6 +112,8 @@ class Converter:
         props = obj[self.PROPERTIES]
         outputs = []
         for output_pin in props[self.OUTPUT_PINS]:
+            if self.CONNECTIONS not in output_pin:
+                continue
             for connection in output_pin[self.CONNECTIONS]:
                 outputs.append(connection[self.TARGET])
         fragment = {
