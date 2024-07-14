@@ -106,6 +106,7 @@ class Converter:
         self.dialogues.append({
             'id': props[self.ID],
             'name': props[self.DISPLAY_NAME],
+            'speakers': [],
         })
 
     def _parse_dialogue_fragment(self, obj):
@@ -125,6 +126,12 @@ class Converter:
             'inputs': [],
         }
         self.fragments[props[self.ID]] = fragment
+        # Fill speakers for the dialogue
+        for dialogue in self.dialogues:
+            if dialogue['id'] == props[self.PARENT]:
+                if props[self.SPEAKER] in dialogue['speakers']:
+                    continue
+                dialogue['speakers'].append(props[self.SPEAKER])
 
     def _parse_objects_file(self, objects_filename):
         objects_path = os.path.join(self.root_dir, objects_filename)
