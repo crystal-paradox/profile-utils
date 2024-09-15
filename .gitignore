@@ -1,4 +1,7 @@
 .idea/
 .venv/
+build/
+dist/
 *.json
+*.spec
 qodana.yaml
