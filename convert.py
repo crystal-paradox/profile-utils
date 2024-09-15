@@ -200,7 +200,15 @@ class Converter:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('directory', type=str, help='Directory containing the manifest.json file')
+    parser.add_argument(
+        'directory',
+        type=str,
+        nargs='?',  # This makes the argument optional
+        default=os.getcwd(),  # Default to current working directory
+        help='Directory containing the manifest.json file (default: current directory)'
+    )
+    args = parser.parse_args()
+    print(f"Directory: {args.directory}")
     args = parser.parse_args()
     converter = Converter(args.directory)
     converter.parse()
