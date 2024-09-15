@@ -1,0 +1,42 @@
+name: Build EXE
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on push to the main branch
+  pull_request:
+    branches:
+      - main  # Also trigger on pull requests to main
+
+jobs:
+  build-exe:
+    runs-on: windows-latest  # We need a Windows environment to create an .exe
+
+    steps:
+    # Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    # Install PyInstaller
+    - name: Install PyInstaller
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+
+    # Build the .exe file
+    - name: Build the EXE
+      run: |
+        pyinstaller --onefile convert.py
+
+    # Upload the .exe file as an artifact (optional)
+    - name: Upload EXE
+      uses: actions/upload-artifact@v3
+      with:
+        name: conver-exe
+        path: dist/conver.exe  # Path to your generated EXE file
