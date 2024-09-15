@@ -38,5 +38,5 @@ jobs:
     - name: Upload EXE
       uses: actions/upload-artifact@v3
       with:
-        name: conver-exe
-        path: dist/conver.exe  # Path to your generated EXE file
+        name: convert-exe
+        path: dist/convert.exe  # Path to your generated EXE file
