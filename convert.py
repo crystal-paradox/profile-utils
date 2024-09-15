@@ -209,7 +209,6 @@ def main():
     )
     args = parser.parse_args()
     print(f"Directory: {args.directory}")
-    args = parser.parse_args()
     converter = Converter(args.directory)
     converter.parse()
     converter.save()
