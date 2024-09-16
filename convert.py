@@ -187,7 +187,7 @@ class Converter:
 
     def save(self):
         self._update_dialogue_fragments()
-        file_path = os.path.join(os.getcwd(), 'profile', self.OUTPUT_FILE)
+        file_path = os.path.join(os.path.expanduser('~'), 'profile', 'assets', self.OUTPUT_FILE)
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump({
                 'project': self.project,
