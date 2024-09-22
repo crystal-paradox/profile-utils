@@ -15,7 +15,7 @@ jobs:
     steps:
     # Checkout the repository
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     # Set up Python
     - name: Set up Python
@@ -32,11 +32,11 @@ jobs:
     # Build the .exe file
     - name: Build the EXE
       run: |
-        pyinstaller --onefile convert.py
+        pyinstaller --onefile app.py
 
     # Upload the .exe file as an artifact (optional)
     - name: Upload EXE
       uses: actions/upload-artifact@v3
       with:
-        name: convert-exe
-        path: dist/convert.exe  # Path to your generated EXE file
+        name: app-exe
+        path: dist/app.exe  # Path to your generated EXE file
