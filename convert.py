@@ -18,7 +18,6 @@ def get_file_extension(file_path):
 
 class Converter:
     MANIFEST_FILE = 'manifest.json'
-    OUTPUT_FILE = 'data.json'
     ID = 'Id'
     NONE = 'None'
     PROJECT = 'Project'
@@ -185,10 +184,9 @@ class Converter:
             for output in fragment['outputs']:
                 self.fragments[output]['inputs'].append(fragment_id)
 
-    def save(self):
+    def save(self, output_path):
         self._update_dialogue_fragments()
-        file_path = os.path.join(os.path.expanduser('~'), 'profile', 'assets', self.OUTPUT_FILE)
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             json.dump({
                 'project': self.project,
                 'localization': self.localization,
@@ -197,6 +195,12 @@ class Converter:
                 'fragments': self.fragments,
                 'images': self.images,
             }, f, ensure_ascii=False, indent=2)
+
+
+def convert(directory, output_path):
+    converter = Converter(directory)
+    converter.parse()
+    converter.save(output_path)
 
 
 def main():
@@ -210,9 +214,7 @@ def main():
     )
     args = parser.parse_args()
     print(f"Directory: {args.directory}")
-    converter = Converter(args.directory)
-    converter.parse()
-    converter.save()
+    convert(args.directory, os.path.join(os.path.expanduser('~'), 'profile', 'assets', 'data.json'))
 
 
 if __name__ == '__main__':
