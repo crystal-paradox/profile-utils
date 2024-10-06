@@ -45,6 +45,8 @@ class Converter:
     OUTPUT_PINS = 'OutputPins'
     CONNECTIONS = 'Connections'
     TARGET = 'Target'
+    FLOW_FRAGMENT = 'FlowFragment'
+    ATTACHMENTS = 'Attachments'
 
     def __init__(self, root_dir):
         self.project = self.NONE
@@ -116,14 +118,23 @@ class Converter:
                 continue
             for connection in output_pin[self.CONNECTIONS]:
                 outputs.append(connection[self.TARGET])
+
         fragment = {
             'dialogue': props[self.PARENT],
-            'speaker': props[self.SPEAKER],
             'text': props[self.TEXT],
             'outputs': outputs,
             # It will be filled in _update_dialogue_fragments
             'inputs': [],
         }
+
+        speaker = props.get(self.SPEAKER)
+        if speaker:
+            fragment['speaker'] = speaker
+
+        attachments = props.get(self.ATTACHMENTS)
+        if attachments:
+            fragment['attachments'] = attachments
+
         self.fragments[props[self.ID]] = fragment
         # Fill speakers for the dialogue
         for dialogue in self.dialogues:
@@ -132,6 +143,9 @@ class Converter:
             if props[self.SPEAKER] in dialogue['speakers']:
                 continue
             dialogue['speakers'].append(props[self.SPEAKER])
+
+    def _parse_flow_fragment(self, obj):
+        self._parse_dialogue_fragment(obj)
 
     def _parse_objects_file(self, objects_filename):
         objects_path = os.path.join(self.root_dir, objects_filename)
@@ -146,6 +160,8 @@ class Converter:
                 self._parse_dialogue(obj)
             if obj.get(self.TYPE) == self.DIALOGUE_FRAGMENT:
                 self._parse_dialogue_fragment(obj)
+            if obj.get(self.TYPE) == self.FLOW_FRAGMENT:
+                self._parse_flow_fragment(obj)
 
     def _parse_localization(self, localization_filename):
         localization_path = os.path.join(self.root_dir, localization_filename)
@@ -184,8 +200,23 @@ class Converter:
             for output in fragment['outputs']:
                 self.fragments[output]['inputs'].append(fragment_id)
 
+    """
+    Dialogue fragments don't contain information about the speaker by default,
+    so we need to check the fragment before to get the speaker name
+    """
+    def _update_flow_fragments(self):
+        for fragment_id, fragment in self.fragments.items():
+            if 'speaker' in fragment:
+                continue
+            for _input in fragment['inputs']:
+                speaker = self.fragments[_input].get('speaker')
+                if speaker:
+                    fragment['speaker'] = speaker
+                    break
+
     def save(self, output_path):
         self._update_dialogue_fragments()
+        self._update_flow_fragments()
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump({
                 'project': self.project,
@@ -214,7 +245,7 @@ def main():
     )
     args = parser.parse_args()
     print(f"Directory: {args.directory}")
-    convert(args.directory, os.path.join(os.path.expanduser('~'), 'profile', 'assets', 'data.json'))
+    convert(args.directory, 'data.json')
 
 
 if __name__ == '__main__':
