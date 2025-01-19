@@ -30,7 +30,7 @@ jobs:
         pip install -r requirements.txt
 
     # Build the .exe file
-    - name: Build the EXE
+    - name: Build EXE
       run: |
         pyinstaller --onefile app.py
 
