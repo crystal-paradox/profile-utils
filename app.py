@@ -106,6 +106,7 @@ class RepoWindow(QWidget):
     def launch_repo(self):
         self.run_command(['npm.cmd', 'run', 'start'], cwd=self.repo_path)
 
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
