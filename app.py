@@ -11,8 +11,6 @@ from convert import convert
 
 
 class RepoWindow(QWidget):
-    CONFIG_FILE = 'config.json'
-
     def __init__(self):
         super().__init__()
 
