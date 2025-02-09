@@ -4,5 +4,6 @@ build/
 dist/
 *.json
 *.spec
+*.db
 qodana.yaml
 config.json

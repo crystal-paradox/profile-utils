@@ -4,6 +4,8 @@ import json
 import os
 import sys
 
+from model import *
+
 extension_mapping = {
     'jpg': 'jpeg'
 }
@@ -217,6 +219,71 @@ class Converter:
     def save(self, output_path):
         self._update_dialogue_fragments()
         self._update_flow_fragments()
+
+        assets = {}
+        with database.atomic():
+            for image_key, image in self.images.items():
+                new_image = Asset.create(
+                    data=image['uri'],
+                    meta=json.dumps({
+                        'width': image['width'],
+                        'height': image['height'],
+                    }))
+                assets[image_key] = new_image
+
+        localization = {}
+        with database.atomic():
+            for loc_key, loc in self.localization.items():
+                new_loc = Localization.create(
+                    text=loc['']['text'],
+                )
+                localization[loc_key] = new_loc
+
+        entities = {}
+        with database.atomic():
+            for entity_key, entity in self.entities.items():
+                new_entity = Entity.create(
+                    name=localization[entity['name']].id,
+                    preview=assets[entity['preview']].id,
+                )
+                entities[entity_key] = new_entity
+
+        dialogues = {}
+        with database.atomic():
+            for dialogue in self.dialogues:
+                new_dialogue = Dialogue.create(
+                    name=localization[dialogue['name']].id,
+                )
+                dialogues[dialogue['id']] = new_dialogue
+                for dialogue_speaker in dialogue['speakers']:
+                    DialogueSpeaker.create(
+                        dialogue=new_dialogue.id,
+                        speaker=entities[dialogue_speaker].id
+                    )
+
+        fragments = {}
+        with database.atomic():
+            for fragment_key, fragment in self.fragments.items():
+                if not fragment['dialogue'] in dialogues.keys():
+                    continue
+                new_fragment = Fragment.create(
+                    dialogue=dialogues[fragment['dialogue']].id,
+                    speaker=entities[fragment['speaker']].id,
+                    text=localization[fragment['text']].id,
+                )
+                fragments[fragment_key] = new_fragment
+
+        with database.atomic():
+            for fragment_key, fragment in self.fragments.items():
+                if not fragment['dialogue'] in dialogues.keys():
+                    continue
+                new_fragment = fragments[fragment_key]
+                for output_id in fragment['outputs']:
+                    FragmentConnection.create(source=new_fragment.id, target=fragments[output_id].id)
+                for input_id in fragment['inputs']:
+                    FragmentConnection.create(source=fragments[input_id].id, target=new_fragment.id)
+
+        # JSON saving
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump({
                 'project': self.project,
@@ -229,6 +296,7 @@ class Converter:
 
 
 def convert(directory, output_path):
+    initialize_database()
     converter = Converter(directory)
     converter.parse()
     converter.save(output_path)
